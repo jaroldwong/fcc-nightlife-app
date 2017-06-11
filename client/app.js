@@ -1,12 +1,12 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
+const React = require('react');
+const ReactDOM = require('react-dom');
 const axios = require('axios');
 
 require('./style.css');
 
 class App extends React.Component {
   render() {
-    return(
+    return (
         <div className="container">
             <div className="header">
               <h1>Flock Together</h1>
@@ -29,30 +29,30 @@ class Venues extends React.Component {
 
   componentDidMount() {
     axios.get('http://localhost:3000')
-    .then(response => {
+    .then((response) => {
       this.setState(() => {
-        return {
-          businesses: response.data,
-        }
-      })
+        return { businesses: response.data };
+      });
     });
   }
+
   render() {
-    return(
+    return (
       <ul>
         {!this.state.businesses
           ? <p>LOADING...</p>
           : this.state.businesses.map((business) => {
-          return (
-            <li key={business.id} className="listing">
-              <h2><a href={business.url}>{business.name}</a></h2>
-              <img src={business.image_url} width="150px" />
-            </li>
-          )
-        })}
+            return (
+              <li key={business.id} className="listing">
+                <h2><a href={business.url}>{business.name}</a></h2>
+                <img src={business.image_url} width="150px" />
+              </li>
+            );
+          })
+        }
 
       </ul>
-    )
+    );
   }
 }
 
