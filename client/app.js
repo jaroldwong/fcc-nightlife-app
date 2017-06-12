@@ -20,7 +20,7 @@ class App extends React.Component {
   }
 
   fetchVenues(term) {
-    const searchUrl = `http://localhost:3000/${term}`;
+    const searchUrl = `/${term}`;
 
     axios.get(searchUrl)
     .then((response) => {
