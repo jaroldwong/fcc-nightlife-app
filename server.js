@@ -3,17 +3,18 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
+
 const app = express();
 
 app.use(cors());
 
-var API = "https://api.yelp.com/v3/businesses/search?categories=coffee&location=95618"
-var auth_header = {
-  "Authorization": "Bearer " + process.env.ACCESS_TOKEN,
-}
+app.get('/:loc', (req, res) => {
+  const apiCall = `https://api.yelp.com/v3/businesses/search?categories=coffee&location=${req.params.loc}`;
+  const authHeader = {
+    Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
+  };
 
-app.get('/', (req, res) => {
-  axios.get(API, {headers: auth_header})
+  axios.get(apiCall, { headers: authHeader })
   .then((response) => {
     res.json(response.data.businesses);
   }).catch((err) => {
