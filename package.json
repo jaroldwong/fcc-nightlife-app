@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "dev": "webpack-dev-server --open",  
-    "start": "webpack -d && node server.js"
+    "start": "webpack -p --optimize-minimize && node server.js"
   },
   "author": "",
   "license": "ISC",
