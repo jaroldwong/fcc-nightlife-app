@@ -4,8 +4,9 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-    "start": "webpack-dev-server --open",
-    "build": "webpack -d"
+    "dev": "webpack-dev-server --open",
+    "build": "webpack -d",    
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
