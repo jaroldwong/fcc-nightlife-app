@@ -16,10 +16,10 @@ class Button extends React.Component {
   addToGuests() {
     const businessId = this.props.businessId;
     axios.post(`http://localhost:3000/${businessId}/guests`, {
-      "guest": "myId",
+      "userId": "myId",
     })
       .then((response) => {
-        const total = response.data[businessId].guests.length;
+        const total = response.data.guests.length;
         this.setState(() => ({ total }));
       });
   }
@@ -27,7 +27,7 @@ class Button extends React.Component {
   removeFromGuests() {
     const businessId = this.props.businessId;    
     axios.delete(`http://localhost:3000/${businessId}/guests`, {
-      guest: 'myId',
+      "userId": 'myId',
     });
       // .then((response) => {
       //   const total = response.data.guests.length;

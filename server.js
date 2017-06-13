@@ -9,16 +9,16 @@ const session = require('express-session');
 const cors = require('cors');
 const axios = require('axios');
 
-const User = require('./models/user');
-const Venue = require('./models/venue');
 const app = express();
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(cors());
 
 // DB CONFIG
+const User = require('./models/user');
+const Venue = require('./models/venue');
+
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost:27017/swarme');
 
@@ -52,19 +52,36 @@ app.get('/:location', (req, res) => {
 
 app.post('/:businessId/guests', (req, res) => {
   const businessId = req.params.businessId;
-  mock[businessId] = { guests: [] };
-  mock[businessId].guests.push(req.body.guest);
+  const userId = req.body.userId;
 
-  res.json(mock);
+  Venue.findOne({ businessId }, (err, venue) => {
+    if (!venue) {
+      Venue.create({
+        businessId: businessId,
+        guests: [userId],
+      }, (err, newVenue) => {
+        res.json(newVenue);
+      });
+    } else {
+      venue.guests.push(userId);
+      venue.save()
+        .then((updatedVenue) => {
+          res.json(updatedVenue);
+        });
+    }
+  });
 });
 
 app.delete('/:businessId/guests', (req, res) => {
   const businessId = req.params.businessId;
 
-  const removalIdx = mock[businessId].guests.indexOf(req.body.guest);
-  mock[businessId].guests.splice(removalIdx, 1);
+  Venue.findOne({ businessId }, (err, venue) => {
+    if (err) { console.error(err); }
 
-  res.json(mock);
+    const removeIdx = venue.guests.indexOf(req.body.userId);
+    venue.guests.splice(removeIdx, 1);
+    venue.save();
+  });
 });
 
 // AUTH ROUTES

@@ -5,10 +5,7 @@ const VenueSchema = new mongoose.Schema({
     type: String,
     require: true,
   },
-  guests: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'user',
-  }],
+  guests: [],
 });
 
 const Venue = mongoose.model('venue', VenueSchema);
