@@ -11,12 +11,10 @@ app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(cors());
 
-const mock = {
-  guests: ['guest1_id', 'guest2_id', 'guest3_id'],
-};
+const mock = {};
 
-app.get('/:loc', (req, res) => {
-  const apiCall = `https://api.yelp.com/v3/businesses/search?categories=coffee&location=${req.params.loc}`;
+app.get('/:location', (req, res) => {
+  const apiCall = `https://api.yelp.com/v3/businesses/search?categories=coffee&location=${req.params.location}&limit=5`;
   const authHeader = {
     Authorization: `Bearer ${process.env.ACCESS_TOKEN}`,
   };
@@ -29,18 +27,20 @@ app.get('/:loc', (req, res) => {
     });
 });
 
-app.put('/location/guests', (req, res) => {
-  mock.guests.push(req.body.guest);
+app.post('/:businessId/guests', (req, res) => {
+  const businessId = req.params.businessId;
+  mock[businessId] = { guests: [] };
+  mock[businessId].guests.push(req.body.guest);
 
-  console.log(mock);
   res.json(mock);
 });
 
-app.delete('/location/guests', (req, res) => {
-  const idx = mock.guests.indexOf(req.body.guest);
-  mock.guests.splice(idx, 1);
+app.delete('/:businessId/guests', (req, res) => {
+  const businessId = req.params.businessId;
 
-  console.log(mock);
+  const removalIdx = mock[businessId].guests.indexOf(req.body.guest);
+  mock[businessId].guests.splice(removalIdx, 1);
+
   res.json(mock);
 });
 

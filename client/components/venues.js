@@ -12,7 +12,7 @@ const Venues = (props) => {
             <li key={business.id} className="listing">
               <h2><a href={business.url}>{business.name}</a></h2>
               <img src={business.image_url} alt={business.name} height="150px" width="150px" />
-              <Button />
+              <Button businessId={business.id} />
             </li>
           );
         })
@@ -22,7 +22,12 @@ const Venues = (props) => {
 };
 
 Venues.propTypes = {
-  businesses: PropTypes.array.isRequired,
+  businesses: PropTypes.array,
 };
+
+Venues.defaultProps = {
+  businesses: [],
+};
+
 
 module.exports = Venues;

@@ -14,23 +14,25 @@ class Button extends React.Component {
   }
 
   addToGuests() {
-    axios.put('/location/guests', {
-      guest: 'myId',
+    const businessId = this.props.businessId;
+    axios.post(`http://localhost:3000/${businessId}/guests`, {
+      "guest": "myId",
     })
       .then((response) => {
-        const total = response.data.guests.length;
+        const total = response.data[businessId].guests.length;
         this.setState(() => ({ total }));
       });
   }
 
   removeFromGuests() {
-    axios.delete('/location/guests', {
+    const businessId = this.props.businessId;    
+    axios.delete(`http://localhost:3000/${businessId}/guests`, {
       guest: 'myId',
-    })
-      .then((response) => {
-        const total = response.data.guests.length;
-        this.setState(() => ({ total }));
-      });
+    });
+      // .then((response) => {
+      //   const total = response.data.guests.length;
+      //   this.setState(() => ({ total }));
+      // });
   }
 
   handleClick() {

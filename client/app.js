@@ -20,7 +20,7 @@ class App extends React.Component {
   }
 
   fetchVenues(term) {
-    const searchUrl = `/${term}`;
+    const searchUrl = `http://localhost:3000/${term}`;
 
     axios.get(searchUrl)
     .then((response) => {
@@ -45,7 +45,8 @@ class App extends React.Component {
     return (
       <div className="container">
         <div className="header">
-          <h1>Flock Together</h1>
+          <h1>Swarme</h1>
+          <p>Find out where everyone is going tonight</p>
           <form onSubmit={this.handleSubmit}>
             <input
               type="text"
