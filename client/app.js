@@ -28,7 +28,7 @@ class App extends React.Component {
     });
   }
 
-  getToken() {
+  fetchToken() {
     const data = {
       username: 'bob',
       password: 'password',
@@ -56,7 +56,8 @@ class App extends React.Component {
   render() {
     return (
       <div className="container">
-        <button onClick={this.testLogin}>Get a token</button>      
+        <button onClick={this.fetchToken}>Fetch token</button>
+        <a href="http://localhost:3000/auth/facebook" className="btn btn-primary btn-sm pull-right">Sign In with Facebook</a>
         <div className="header">
           <h1>Swarme</h1>
           <p>Find out where everyone is going tonight</p>

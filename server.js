@@ -9,6 +9,7 @@ const axios = require('axios');
 const jwt = require('jwt-simple');
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
+const FacebookStrategy = require('passport-facebook').Strategy;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -41,6 +42,22 @@ passport.use(new JwtStrategy(jwtOptions, (payload, done) => {
     }
   });
 }));
+
+passport.use(new FacebookStrategy(
+  {
+    clientID: process.env.FACEBOOK_ID,
+    clientSecret: process.env.FACEBOOK_SECRET,
+    callbackURL: 'http://localhost:3000/auth/facebook/callback',
+    passReqToCallback: true,
+  }, (req, accessToken, refreshToken, profile, done) => {
+    const user = {
+      displayName: profile.displayName,
+      facebookId: profile.id,
+      facebookToken: accessToken,
+    };
+
+    done(null, user);
+  }));
 
 function encodeToken(user) {
   const timestamp = new Date().getTime();
@@ -102,6 +119,16 @@ app.delete('/:businessId/guests', (req, res) => {
 });
 
 // AUTH ROUTES
+app.get('/auth/facebook', passport.authenticate('facebook', { session: false }));
+app.get('/auth/facebook/callback', passport.authenticate('facebook', {
+  // successRedirect: 'localhost:8080',
+  // failureRedirect: '/error',
+  session: false,
+}), (req, res) => {
+  console.log(req.user);
+  res.redirect('localhost:8080');
+});
+
 app.post('/signup', (req, res) => {
   // save a user to db after they authenticate with oauth
 });
