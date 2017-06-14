@@ -15,9 +15,9 @@ class Button extends React.Component {
 
   addToGuests() {
     const businessId = this.props.businessId;
-    axios.post(`http://localhost:3000/${businessId}/guests`, {
-      "userId": "myId",
-    })
+    axios.post(`http://localhost:3000/${businessId}/guests`, {}, {
+      headers: { authorization: localStorage.getItem('token') } },
+    )
       .then((response) => {
         const total = response.data.guests.length;
         this.setState(() => ({ total }));

@@ -28,6 +28,18 @@ class App extends React.Component {
     });
   }
 
+  getToken() {
+    const data = {
+      username: 'bob',
+      password: 'password',
+    }
+
+    axios.post('http://localhost:3000/login', data)
+      .then((response) => {
+      localStorage.setItem('token', response.data.token);
+    });
+  }
+
   handleChange(event) {
     const value = event.target.value;
 
@@ -44,6 +56,7 @@ class App extends React.Component {
   render() {
     return (
       <div className="container">
+        <button onClick={this.testLogin}>Get a token</button>      
         <div className="header">
           <h1>Swarme</h1>
           <p>Find out where everyone is going tonight</p>

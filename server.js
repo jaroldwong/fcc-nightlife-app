@@ -4,10 +4,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const session = require('express-session');
 const cors = require('cors');
 const axios = require('axios');
+const jwt = require('jwt-simple');
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -23,18 +24,34 @@ mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost:27017/swarme');
 
 // PASSPORT CONFIG
-app.use(session({
-  secret: process.env.SECRET,
-  resave: false,
-  saveUninitialized: false,
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-passport.use(new LocalStrategy(User.authenticate()));
-passport.serializeUser(User.serializeUser);
-passport.deserializeUser(User.deserializeUser());
+const requireAuth = passport.authenticate('jwt', { session: false });
+const jwtOptions = {
+  jwtFromRequest: ExtractJwt.fromHeader('authorization'),
+  secretOrKey: process.env.SECRET,
+};
 
-const mock = {};
+passport.use(new JwtStrategy(jwtOptions, (payload, done) => {
+  User.find({ username: payload.sub }, (err, user) => {
+    if (err) { return done(err, false); }
+
+    if (user) {
+      done(null, user);
+    } else {
+      done(null, false);
+    }
+  });
+}));
+
+function encodeToken(user) {
+  const timestamp = new Date().getTime();
+  const payload = {
+    sub: user.username,
+    iat: timestamp,
+  };
+
+  return jwt.encode(payload, process.env.SECRET);
+}
+
 
 app.get('/:location', (req, res) => {
   const apiCall = `https://api.yelp.com/v3/businesses/search?categories=coffee&location=${req.params.location}&limit=5`;
@@ -50,9 +67,9 @@ app.get('/:location', (req, res) => {
     });
 });
 
-app.post('/:businessId/guests', (req, res) => {
+app.post('/:businessId/guests', requireAuth, (req, res) => {
   const businessId = req.params.businessId;
-  const userId = req.body.userId;
+  const userId = req.user[0]._id;
 
   Venue.findOne({ businessId }, (err, venue) => {
     if (!venue) {
@@ -86,24 +103,14 @@ app.delete('/:businessId/guests', (req, res) => {
 
 // AUTH ROUTES
 app.post('/signup', (req, res) => {
-  const newUser = new User({username: req.body.username});
-  User.register(newUser, req.body.password, (err, user) => {
-    if (err) {
-      console.log(err);
-    }
-
-    res.send('Successful signup');
-  });
+  // save a user to db after they authenticate with oauth
 });
 
-app.get('/login', passport.authenticate('local', { failureRedirect: '/login' }),
-  (req, res) => {
-    console.log('user logged in');
-    res.send('Successful login');
-  });
+app.post('/login', (req, res) => {
+  // check if user is saved in db
 
-app.get('/logout', (req, res) => {
-  req.logout();
+  // send back token
+  res.json({ success: true, token: encodeToken(req.body) });
 });
 
 app.listen(3000, () => {
