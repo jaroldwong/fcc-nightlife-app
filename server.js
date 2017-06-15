@@ -50,19 +50,34 @@ passport.use(new FacebookStrategy(
     callbackURL: 'http://localhost:3000/auth/facebook/callback',
     passReqToCallback: true,
   }, (req, accessToken, refreshToken, profile, done) => {
-    const user = {
-      displayName: profile.displayName,
-      facebookId: profile.id,
-      facebookToken: accessToken,
-    };
 
-    done(null, user);
+    User.findOne({facebookId: profile.id}, function(err, user) {
+      if (user) {
+        console.log('found user');
+        done(null, user);
+      } else {
+        console.log('save as new user');
+        const newUser = {
+          displayName: profile.displayName,
+          facebookId: profile.id,
+          facebookToken: accessToken,
+        };
+
+        User.create(newUser).then((err, user) => {
+          if (err) console.log(err);
+
+          console.log('New user created');
+
+          done(null, user);
+        });
+      }
+    });
   }));
 
 function encodeToken(user) {
   const timestamp = new Date().getTime();
   const payload = {
-    sub: user.username,
+    sub: user,
     iat: timestamp,
   };
 
@@ -86,7 +101,8 @@ app.get('/:location', (req, res) => {
 
 app.post('/:businessId/guests', requireAuth, (req, res) => {
   const businessId = req.params.businessId;
-  const userId = req.user[0]._id;
+  console.log(req.user)
+  const userId = req.user[0].facebookId;
 
   Venue.findOne({ businessId }, (err, venue) => {
     if (!venue) {
@@ -120,25 +136,11 @@ app.delete('/:businessId/guests', (req, res) => {
 
 // AUTH ROUTES
 app.get('/auth/facebook', passport.authenticate('facebook', { session: false }));
-app.get('/auth/facebook/callback', passport.authenticate('facebook', {
-  // successRedirect: 'localhost:8080',
-  // failureRedirect: '/error',
-  session: false,
-}), (req, res) => {
-  console.log(req.user);
-  res.redirect('localhost:8080');
-});
-
-app.post('/signup', (req, res) => {
-  // save a user to db after they authenticate with oauth
-});
-
-app.post('/login', (req, res) => {
-  // check if user is saved in db
-
-  // send back token
-  res.json({ success: true, token: encodeToken(req.body) });
-});
+app.get('/auth/facebook/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
+  res.cookie('jwt', encodeToken(req.user.facebookId));
+  res.redirect('http://localhost:8080/');
+}
+);
 
 app.listen(3000, () => {
   console.log('Server listening on 3000');

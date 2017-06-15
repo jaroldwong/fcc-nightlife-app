@@ -15,8 +15,10 @@ class Button extends React.Component {
 
   addToGuests() {
     const businessId = this.props.businessId;
+    const jwt = document.cookie.replace(/(?:(?:^|.*;\s*)jwt\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+
     axios.post(`http://localhost:3000/${businessId}/guests`, {}, {
-      headers: { authorization: localStorage.getItem('token') } },
+      headers: { authorization: jwt } },
     )
       .then((response) => {
         const total = response.data.guests.length;

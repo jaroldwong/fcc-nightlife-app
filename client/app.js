@@ -57,7 +57,7 @@ class App extends React.Component {
     return (
       <div className="container">
         <button onClick={this.fetchToken}>Fetch token</button>
-        <a href="http://localhost:3000/auth/facebook" className="btn btn-primary btn-sm pull-right">Sign In with Facebook</a>
+        <a href="http://localhost:3000/auth/facebook" className="btn btn-primary btn-sm pull-right">Continue with Facebook</a>
         <div className="header">
           <h1>Swarme</h1>
           <p>Find out where everyone is going tonight</p>
