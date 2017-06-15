@@ -27,14 +27,12 @@ class Button extends React.Component {
   }
 
   removeFromGuests() {
-    const businessId = this.props.businessId;    
+    const businessId = this.props.businessId;
+    const jwt = document.cookie.replace(/(?:(?:^|.*;\s*)jwt\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+
     axios.delete(`http://localhost:3000/${businessId}/guests`, {
-      "userId": 'myId',
+      headers: { authorization: jwt },
     });
-      // .then((response) => {
-      //   const total = response.data.guests.length;
-      //   this.setState(() => ({ total }));
-      // });
   }
 
   handleClick() {

@@ -32,7 +32,7 @@ const jwtOptions = {
 };
 
 passport.use(new JwtStrategy(jwtOptions, (payload, done) => {
-  User.find({ username: payload.sub }, (err, user) => {
+  User.find({ facebookId: payload.sub }, (err, user) => {
     if (err) { return done(err, false); }
 
     if (user) {
@@ -117,12 +117,15 @@ app.post('/:businessId/guests', requireAuth, (req, res) => {
       venue.save()
         .then((updatedVenue) => {
           res.json(updatedVenue);
+        })
+        .catch((err) => {
+          console.log(err);
         });
     }
   });
 });
 
-app.delete('/:businessId/guests', (req, res) => {
+app.delete('/:businessId/guests', requireAuth, (req, res) => {
   const businessId = req.params.businessId;
 
   Venue.findOne({ businessId }, (err, venue) => {
@@ -130,7 +133,10 @@ app.delete('/:businessId/guests', (req, res) => {
 
     const removeIdx = venue.guests.indexOf(req.body.userId);
     venue.guests.splice(removeIdx, 1);
-    venue.save();
+    venue.save()
+      .then(() => {
+        res.send('successful delete from guest list');
+      });
   });
 });
 
@@ -139,8 +145,7 @@ app.get('/auth/facebook', passport.authenticate('facebook', { session: false }))
 app.get('/auth/facebook/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
   res.cookie('jwt', encodeToken(req.user.facebookId));
   res.redirect('http://localhost:8080/');
-}
-);
+});
 
 app.listen(3000, () => {
   console.log('Server listening on 3000');

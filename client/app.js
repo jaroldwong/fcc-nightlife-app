@@ -28,18 +28,6 @@ class App extends React.Component {
     });
   }
 
-  fetchToken() {
-    const data = {
-      username: 'bob',
-      password: 'password',
-    }
-
-    axios.post('http://localhost:3000/login', data)
-      .then((response) => {
-      localStorage.setItem('token', response.data.token);
-    });
-  }
-
   handleChange(event) {
     const value = event.target.value;
 
@@ -55,23 +43,28 @@ class App extends React.Component {
 
   render() {
     return (
-      <div className="container">
-        <button onClick={this.fetchToken}>Fetch token</button>
-        <a href="http://localhost:3000/auth/facebook" className="btn btn-primary btn-sm pull-right">Continue with Facebook</a>
-        <div className="header">
-          <h1>Swarme</h1>
-          <p>Find out where everyone is going tonight</p>
-          <form onSubmit={this.handleSubmit}>
-            <input
-              type="text"
-              placeholder="Where to?"
-              value={this.state.searchTerm}
-              onChange={this.handleChange}
-            />
-            <input type="submit" value="Search" />
-          </form>
+      <div>
+        <nav className="navbar navbar-default">
+          <div className="container-fluid">
+            <a href="http://localhost:3000/auth/facebook" className="btn btn-primary navbar-btn navbar-right">Continue with Facebook</a>
+          </div>
+        </nav>
+        <div className="container">
+          <div className="header">
+            <h1>Swarme</h1>
+            <p>Find out where everyone is going tonight</p>
+            <form onSubmit={this.handleSubmit}>
+              <input
+                type="text"
+                placeholder="Where to?"
+                value={this.state.searchTerm}
+                onChange={this.handleChange}
+              />
+              <input type="submit" value="Search" />
+            </form>
+          </div>
+          <Venues businesses={this.state.businesses} />
         </div>
-        <Venues businesses={this.state.businesses} />
       </div>
     );
   }
