@@ -47,11 +47,11 @@ passport.use(new FacebookStrategy(
   {
     clientID: process.env.FACEBOOK_ID,
     clientSecret: process.env.FACEBOOK_SECRET,
-    callbackURL: 'http://localhost:3000/auth/facebook/callback',
+    callbackURL: 'http://localhost:8080',
     passReqToCallback: true,
   }, (req, accessToken, refreshToken, profile, done) => {
 
-    User.findOne({facebookId: profile.id}, function(err, user) {
+    User.findOne({ facebookId: profile.id }, function(err, user) {
       if (user) {
         console.log('found user');
         done(null, user);
@@ -140,11 +140,19 @@ app.delete('/:businessId/guests', requireAuth, (req, res) => {
   });
 });
 
-// AUTH ROUTES
-app.get('/auth/facebook', passport.authenticate('facebook', { session: false }));
-app.get('/auth/facebook/callback', passport.authenticate('facebook', { session: false }), (req, res) => {
-  res.cookie('jwt', encodeToken(req.user.facebookId));
-  res.redirect('http://localhost:8080/');
+app.post('/auth/facebook', (req, res) => {
+  const authToken = `Bearer ${req.body.token}`;
+
+  axios.get('https://graph.facebook.com/me?fields=id,name', {
+    headers: { Authorization: authToken },
+  })
+    .then((response) => {
+      const user = response.data;
+      res.send(encodeToken(user.id));
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 });
 
 app.listen(3000, () => {
