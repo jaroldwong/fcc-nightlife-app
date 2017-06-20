@@ -25,7 +25,7 @@ const User = require('./models/userModel');
 const Venue = require('./models/venueModel');
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://localhost:27017/swarme');
+mongoose.connect(process.env.MONGO_URI);
 
 // PASSPORT CONFIG
 app.use(passport.initialize());

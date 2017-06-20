@@ -55,7 +55,7 @@ class App extends React.Component {
         <nav className="navbar navbar-default">
           <div className="container-fluid">
             <a
-              href="http://localhost:3000/auth/twitter"
+              href="/auth/twitter"
               className="navbar-btn navbar-right btn btn-primary"
             >
               Login with Twitter
