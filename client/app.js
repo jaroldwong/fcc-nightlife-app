@@ -19,41 +19,20 @@ class App extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  fetchVenues(term) {
-    const searchUrl = `http://localhost:3000/${term}`;
+  componentWillMount() {
+    const savedResults = JSON.parse(sessionStorage.getItem('savedResults'));
+    if (savedResults) {
+      this.setState(() => (savedResults));
+    }
+  }
+
+  fetchVenues(location) {
+    const searchUrl = `/${location}`;
 
     axios.get(searchUrl)
     .then((response) => {
+      sessionStorage.setItem('savedResults', JSON.stringify({ businesses: response.data }));
       this.setState(() => ({ businesses: response.data }));
-    });
-  }
-
-  facebookAuth() {
-    const authUrl = 'https://www.facebook.com/v2.9/dialog/oauth?client_id=1958298761080188&redirect_uri=http://localhost:8080&response_type=token';
-    const options = 'width=500, height=500';
-
-    // open popup and inject script to send code back
-    const popup = window.open(authUrl, 'Facebook Authentication', options);
-    const script = document.createElement('script');
-    function injectScript() {
-      // const accessToken = window.location.hash.split('=')[1].split('&')[0];
-      const re = /access_token=([^&]+)(?:&expires=(.*))?/;
-      const accessToken = re.exec(window.location.href)[1];
-      window.opener.postMessage(accessToken, window.location.origin);
-    }
-    script.innerHTML = 'window.addEventListener("load", ' + injectScript.toString() + ');';
-    popup.document.body.appendChild(script);
-
-
-    window.addEventListener('message', (event) => {
-      if (event.origin === window.location.origin) {
-        const token = event.data;
-        axios.post('http://localhost:3000/auth/facebook', { token })
-          .then((response) => {
-            sessionStorage.setItem('jwt', response.data);
-          });
-        popup.close();
-      }
     });
   }
 
@@ -75,12 +54,12 @@ class App extends React.Component {
       <div>
         <nav className="navbar navbar-default">
           <div className="container-fluid">
-            <button
-              onClick={this.facebookAuth}
-              className="btn btn-primary navbar-btn navbar-right"
+            <a
+              href="http://localhost:3000/auth/twitter"
+              className="navbar-btn navbar-right btn btn-primary"
             >
-              Continue with Facebook
-            </button>
+              Login with Twitter
+            </a>
           </div>
         </nav>
         <div className="container">

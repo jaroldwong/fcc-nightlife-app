@@ -6,7 +6,7 @@ const Venues = (props) => {
   return (
     <ul>
       {!props.businesses
-        ? <p>Waiting...</p>
+        ? <p className="text-center">Enter a location to get started</p>
         : props.businesses.map((business) => {
           return (
             <li key={business.id} className="listing">

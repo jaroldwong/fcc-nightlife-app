@@ -15,11 +15,8 @@ class Button extends React.Component {
 
   addToGuests() {
     const businessId = this.props.businessId;
-    const jwt = document.cookie.replace(/(?:(?:^|.*;\s*)jwt\s*\=\s*([^;]*).*$)|^.*$/, "$1");
 
-    axios.post(`http://localhost:3000/${businessId}/guests`, {}, {
-      headers: { authorization: jwt } },
-    )
+    axios.post(`/${businessId}/guests`, {})
       .then((response) => {
         const total = response.data.guests.length;
         this.setState(() => ({ total }));
@@ -28,11 +25,8 @@ class Button extends React.Component {
 
   removeFromGuests() {
     const businessId = this.props.businessId;
-    const jwt = document.cookie.replace(/(?:(?:^|.*;\s*)jwt\s*\=\s*([^;]*).*$)|^.*$/, "$1");
 
-    axios.delete(`http://localhost:3000/${businessId}/guests`, {
-      headers: { authorization: jwt },
-    });
+    axios.delete(`/${businessId}/guests`, {});
   }
 
   handleClick() {

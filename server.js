@@ -1,57 +1,60 @@
 require('dotenv').config();
 
 const express = require('express');
+const session = require('express-session');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const passport = require('passport');
+const TwitterStrategy = require('passport-twitter').Strategy;
 const cors = require('cors');
 const axios = require('axios');
-const jwt = require('jwt-simple');
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
-const FacebookStrategy = require('passport-facebook').Strategy;
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(cors());
+app.use(session({
+  secret: process.env.SECRET,
+  resave: true,
+  saveUninitialized: true,
+}));
 
 // DB CONFIG
-const User = require('./models/user');
-const Venue = require('./models/venue');
+const User = require('./models/userModel');
+const Venue = require('./models/venueModel');
 
 mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost:27017/swarme');
 
 // PASSPORT CONFIG
-const requireAuth = passport.authenticate('jwt', { session: false });
-const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromHeader('authorization'),
-  secretOrKey: process.env.SECRET,
-};
+app.use(passport.initialize());
+app.use(passport.session());
 
-passport.use(new JwtStrategy(jwtOptions, (payload, done) => {
-  User.find({ facebookId: payload.sub }, (err, user) => {
-    if (err) { return done(err, false); }
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+passport.deserializeUser((obj, done) => {
+  done(null, obj);
+});
 
-    if (user) {
-      done(null, user);
-    } else {
-      done(null, false);
-    }
-  });
-}));
+function requireAuth(req, res, next) {
+  if (req.isAuthenticated()) {
+    console.log('user is: ', req.user);
+    return next();
+  }
+  res.redirect('/');
+}
 
-passport.use(new FacebookStrategy(
+passport.use(new TwitterStrategy(
   {
-    clientID: process.env.FACEBOOK_ID,
-    clientSecret: process.env.FACEBOOK_SECRET,
-    callbackURL: 'http://localhost:8080',
+    consumerKey: process.env.TWITTER_KEY,
+    consumerSecret: process.env.TWITTER_SECRET,
+    callbackURL: '/auth/twitter/callback',
     passReqToCallback: true,
-  }, (req, accessToken, refreshToken, profile, done) => {
+  }, (req, token, tokenSecret, profile, done) => {
 
-    User.findOne({ facebookId: profile.id }, function(err, user) {
+    User.findOne({ twitterId: profile.id }, function(err, user) {
       if (user) {
         console.log('found user');
         done(null, user);
@@ -59,9 +62,10 @@ passport.use(new FacebookStrategy(
         console.log('save as new user');
         const newUser = {
           displayName: profile.displayName,
-          facebookId: profile.id,
-          facebookToken: accessToken,
+          twitterId: profile.id,
         };
+
+        console.log(newUser)
 
         User.create(newUser).then((err, user) => {
           if (err) console.log(err);
@@ -73,17 +77,6 @@ passport.use(new FacebookStrategy(
       }
     });
   }));
-
-function encodeToken(user) {
-  const timestamp = new Date().getTime();
-  const payload = {
-    sub: user,
-    iat: timestamp,
-  };
-
-  return jwt.encode(payload, process.env.SECRET);
-}
-
 
 app.get('/:location', (req, res) => {
   const apiCall = `https://api.yelp.com/v3/businesses/search?categories=coffee&location=${req.params.location}&limit=5`;
@@ -99,21 +92,20 @@ app.get('/:location', (req, res) => {
     });
 });
 
-app.post('/:businessId/guests', requireAuth, (req, res) => {
+app.post('/:businessId/guests', requireAuth, (req, res) => {  
   const businessId = req.params.businessId;
-  console.log(req.user)
-  const userId = req.user[0].facebookId;
+  const userDisplayName = req.user.displayName;
 
   Venue.findOne({ businessId }, (err, venue) => {
     if (!venue) {
       Venue.create({
         businessId: businessId,
-        guests: [userId],
+        guests: [userDisplayName],
       }, (err, newVenue) => {
         res.json(newVenue);
       });
     } else {
-      venue.guests.push(userId);
+      venue.guests.push(userDisplayName);
       venue.save()
         .then((updatedVenue) => {
           res.json(updatedVenue);
@@ -140,19 +132,16 @@ app.delete('/:businessId/guests', requireAuth, (req, res) => {
   });
 });
 
-app.post('/auth/facebook', (req, res) => {
-  const authToken = `Bearer ${req.body.token}`;
+app.get('/auth/twitter', passport.authenticate('twitter'));
 
-  axios.get('https://graph.facebook.com/me?fields=id,name', {
-    headers: { Authorization: authToken },
-  })
-    .then((response) => {
-      const user = response.data;
-      res.send(encodeToken(user.id));
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+app.get('/auth/twitter/callback',
+  passport.authenticate('twitter', { failureRedirect: '/login' }),
+  (req, res) => {
+    res.redirect('/');
+  });
+
+app.get('/', (req, res) => {
+  res.render(index);
 });
 
 app.listen(3000, () => {
